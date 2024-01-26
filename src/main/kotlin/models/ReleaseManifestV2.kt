@@ -5,7 +5,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ReleaseManifest(
+data class ReleaseManifestV2(
     val latest: Latest,
     @SerialName("versions")
     val gameReleases: List<GameRelease>,
@@ -18,8 +18,8 @@ data class GameRelease(
     val url: String,
     val time: Instant,
     val releaseTime: Instant,
-    val sha1: String? = null,
-    val complianceLevel: Int? = null,
+    val sha1: String,
+    val complianceLevel: Int,
 )
 
 @Serializable
@@ -35,3 +35,19 @@ enum class ReleaseType {
     @SerialName("snapshot")
     SNAPSHOT,
 }
+
+@Serializable
+data class ReleaseManifest(
+    val latest: Latest,
+    @SerialName("versions")
+    val gameReleases: List<GameReleaseClassic>,
+)
+
+@Serializable
+data class GameReleaseClassic(
+    val id: String,
+    val type: ReleaseType,
+    val url: String,
+    val time: Instant,
+    val releaseTime: Instant,
+)
