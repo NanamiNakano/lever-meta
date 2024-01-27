@@ -5,3 +5,7 @@ database:
   user: "postgres"
   password: "mysecretpassword"
   db: "postgres"
+oss:
+  endpoint: ""
+  accessKey: ""
+  secretKey: ""

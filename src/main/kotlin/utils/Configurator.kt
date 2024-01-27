@@ -1,9 +1,11 @@
 package dev.thynanami.utils
 
 import com.charleskorn.kaml.Yaml
+import dev.thynanami.dao.DatabaseSingleton
 import dev.thynanami.models.LeverMetaConfig
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
+import kotlin.concurrent.thread
 import kotlin.io.path.*
 
 lateinit var config: LeverMetaConfig
@@ -18,6 +20,11 @@ object Configurator {
             saveConfig(LeverMetaConfig())
         }
         config = loadConfig()
+        DatabaseSingleton.init()
+
+        Runtime.getRuntime().addShutdownHook(Thread {
+            saveConfig(config)
+        })
     }
 
     private fun loadConfig(): LeverMetaConfig {

@@ -1,10 +1,13 @@
 package dev.thynanami.models
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class LeverMetaConfig(
-    val database:DatabaseConfig = DatabaseConfig()
+    val database:DatabaseConfig = DatabaseConfig(),
+    @SerialName("oss")
+    val objectStorageConfig: ObjectStorageConfig = ObjectStorageConfig(),
 )
 
 @Serializable
@@ -15,4 +18,11 @@ data class DatabaseConfig(
     val user:String = "",
     val password:String = "",
     val db:String = "postgres"
+)
+
+@Serializable
+data class ObjectStorageConfig(
+    val endpoint:String = "",
+    val accessKey:String = "",
+    val secretKey:String = "",
 )

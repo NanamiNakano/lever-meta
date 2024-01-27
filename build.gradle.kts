@@ -20,6 +20,7 @@ repositories {
 }
 
 dependencies {
+    implementation("io.ktor:ktor-server-auth-jvm:2.3.7")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     implementation("com.charleskorn.kaml:kaml:0.57.0")
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
@@ -33,6 +34,8 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-resources:$ktorVersion")
+    implementation("io.ktor:ktor-server-auth:$ktorVersion")
+    implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
     implementation("org.postgresql:postgresql:42.7.1")
@@ -42,6 +45,8 @@ dependencies {
     implementation("org.xerial:sqlite-jdbc:3.44.1.0")
     implementation("com.h2database:h2:2.2.224")
     implementation("com.zaxxer:HikariCP:5.1.0")
+    implementation("io.minio:minio:8.5.7")
+    implementation("com.password4j:password4j:1.7.3")
 }
 
 application {

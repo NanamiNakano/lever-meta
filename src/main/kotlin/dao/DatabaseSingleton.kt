@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource
 import com.zaxxer.hikari.pool.HikariPool
 import dev.thynanami.logger
 import dev.thynanami.models.database.Releases
+import dev.thynanami.models.database.Users
 import dev.thynanami.utils.config
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.Database
@@ -30,6 +31,7 @@ object DatabaseSingleton {
             database = Database.connect(datasource = dataSource)
             transaction(database) {
                 SchemaUtils.createMissingTablesAndColumns(Releases)
+                SchemaUtils.createMissingTablesAndColumns(Users)
             }
         } catch (ex: HikariPool.PoolInitializationException) {
             logger.error("Invalid database configuration in config file.")
@@ -57,7 +59,7 @@ object DatabaseSingleton {
     )
 
 
-    val driverClass by lazy {
+    private val driverClass by lazy {
         driverMapping.entries.firstOrNull { (prefix, _) ->
             JDBCUrl.startsWith(prefix)
         }?.value ?: error("Database driver not found for $JDBCUrl")
