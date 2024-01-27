@@ -1,6 +1,4 @@
 import com.github.gmazzo.buildconfig.BuildConfigSourceSet
-import java.io.FileOutputStream
-import java.util.*
 
 val exposedVersion: String by project
 val ktorVersion: String by project
@@ -23,6 +21,7 @@ repositories {
 
 dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test")
+    implementation("com.charleskorn.kaml:kaml:0.57.0")
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-crypt:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
@@ -37,6 +36,12 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
     implementation("org.postgresql:postgresql:42.7.1")
+    implementation("mysql:mysql-connector-java:8.0.33")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.3.1")
+    implementation("org.xerial:sqlite-jdbc:3.44.1.0")
+    implementation("org.xerial:sqlite-jdbc:3.44.1.0")
+    implementation("com.h2database:h2:2.2.224")
+    implementation("com.zaxxer:HikariCP:5.1.0")
 }
 
 application {

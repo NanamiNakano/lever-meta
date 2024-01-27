@@ -13,5 +13,5 @@ class PropertiesReader(property: Path) {
         properties.load(dataStream)
     }
 
-    fun getProperty(key:String):String = properties.getProperty(key)
+    fun getProperty(key:String):String? = properties.getProperty(key)
 }
