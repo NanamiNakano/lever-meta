@@ -8,6 +8,8 @@ data class LeverMetaConfig(
     val database:DatabaseConfig = DatabaseConfig(),
     @SerialName("oss")
     val objectStorageConfig: ObjectStorageConfig = ObjectStorageConfig(),
+    @SerialName("ssl")
+    val sslConfig: SSLConfig = SSLConfig(),
 )
 
 @Serializable
@@ -25,4 +27,14 @@ data class ObjectStorageConfig(
     val endpoint:String = "",
     val accessKey:String = "",
     val secretKey:String = "",
+)
+
+@Serializable
+data class SSLConfig(
+    val enabled:Boolean = false,
+    val sslPort:Int = 8443,
+    val keyStore:String = "",
+    val keyStoreAlias:String = "",
+    val keyStorePassword:String = "",
+    val privateKeyPassword:String="",
 )

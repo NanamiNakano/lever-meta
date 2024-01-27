@@ -21,6 +21,7 @@ repositories {
 
 dependencies {
     implementation("io.ktor:ktor-server-auth-jvm:2.3.7")
+    implementation("io.ktor:ktor-server-sessions-jvm:2.3.7")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     implementation("com.charleskorn.kaml:kaml:0.57.0")
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
@@ -33,9 +34,10 @@ dependencies {
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
+    implementation("io.ktor:ktor-server-sessions:$ktorVersion")
     implementation("io.ktor:ktor-server-resources:$ktorVersion")
+    implementation("io.ktor:ktor-network-tls-certificates:$ktorVersion")
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
-    implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
     implementation("org.postgresql:postgresql:42.7.1")
@@ -59,6 +61,29 @@ application {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+task<Exec>("generateCertificate") {
+    commandLine(
+        "keytool",
+        "-keystore",
+        "keystore.jks",
+        "-storepass",
+        "development",
+        "-keypass",
+        "development",
+        "-alias",
+        "development",
+        "-genkeypair",
+        "-keyalg",
+        "RSA",
+        "-keysize",
+        "4096",
+        "-validity",
+        "3",
+        "-dname",
+        "CN=localhost,OU=ktor,O=ktor,L=Unspecified,ST=Unspecified,C=US"
+    )
 }
 
 buildConfig {

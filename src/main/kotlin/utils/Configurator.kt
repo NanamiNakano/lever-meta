@@ -5,10 +5,9 @@ import dev.thynanami.dao.DatabaseSingleton
 import dev.thynanami.models.LeverMetaConfig
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import kotlin.concurrent.thread
 import kotlin.io.path.*
 
-lateinit var config: LeverMetaConfig
+lateinit var appConfig: LeverMetaConfig
 
 object Configurator {
     private val pathToYaml =
@@ -19,11 +18,11 @@ object Configurator {
             pathToYaml.createFile()
             saveConfig(LeverMetaConfig())
         }
-        config = loadConfig()
+        appConfig = loadConfig()
         DatabaseSingleton.init()
 
         Runtime.getRuntime().addShutdownHook(Thread {
-            saveConfig(config)
+            saveConfig(appConfig)
         })
     }
 

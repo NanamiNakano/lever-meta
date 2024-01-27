@@ -1,4 +1,4 @@
-package dev.thynanami.ktor.plugins
+package dev.thynanami.plugins
 
 import dev.thynanami.APP_VERSION
 import dev.thynanami.dao.dao

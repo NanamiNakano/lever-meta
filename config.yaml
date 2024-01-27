@@ -9,3 +9,10 @@ oss:
   endpoint: ""
   accessKey: ""
   secretKey: ""
+ssl:
+  enabled: true
+  sslPort: 8443
+  keyStore: "./keystore.jks"
+  keyStoreAlias: "development"
+  keyStorePassword: "development"
+  privateKeyPassword: "development"

@@ -6,7 +6,7 @@ import com.zaxxer.hikari.pool.HikariPool
 import dev.thynanami.logger
 import dev.thynanami.models.database.Releases
 import dev.thynanami.models.database.Users
-import dev.thynanami.utils.config
+import dev.thynanami.utils.appConfig
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -21,8 +21,8 @@ object DatabaseSingleton {
             val config = HikariConfig().apply {
                 jdbcUrl = JDBCUrl
                 driverClassName = driverClass
-                username = config.database.user
-                password = config.database.password
+                username = appConfig.database.user
+                password = appConfig.database.password
                 maximumPoolSize = 6
                 isReadOnly = false
                 transactionIsolation = "TRANSACTION_SERIALIZABLE"
@@ -43,10 +43,10 @@ object DatabaseSingleton {
         newSuspendedTransaction(Dispatchers.IO, database) { block() }
 
     private val JDBCUrl by lazy {
-        if (config.database.type == "sqlite" || config.database.type == "h2") {
-            "jdbc:${config.database.type}:${config.database.db}"
+        if (appConfig.database.type == "sqlite" || appConfig.database.type == "h2") {
+            "jdbc:${appConfig.database.type}:${appConfig.database.db}"
         }
-        "jdbc:${config.database.type}://${config.database.host}:${config.database.port}/${config.database.db}"
+        "jdbc:${appConfig.database.type}://${appConfig.database.host}:${appConfig.database.port}/${appConfig.database.db}"
     }
 
 
