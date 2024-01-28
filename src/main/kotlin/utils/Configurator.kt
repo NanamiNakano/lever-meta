@@ -16,7 +16,7 @@ object Configurator {
     fun init() {
         if (!pathToYaml.exists()) {
             pathToYaml.createFile()
-            saveConfig(LeverMetaConfig())
+            appConfig = LeverMetaConfig()
         }
         appConfig = loadConfig()
         DatabaseSingleton.init()

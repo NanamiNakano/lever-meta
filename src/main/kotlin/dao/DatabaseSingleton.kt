@@ -20,12 +20,11 @@ object DatabaseSingleton {
         try {
             val config = HikariConfig().apply {
                 jdbcUrl = JDBCUrl
-                driverClassName = driverClass
-                username = appConfig.database.user
-                password = appConfig.database.password
+                driverClassName = "org.postgresql.Driver"
+                username = appConfig.postgresConfig.user
+                password = appConfig.postgresConfig.password
                 maximumPoolSize = 6
                 isReadOnly = false
-                transactionIsolation = "TRANSACTION_SERIALIZABLE"
             }
             val dataSource = HikariDataSource(config)
             database = Database.connect(datasource = dataSource)
@@ -42,26 +41,7 @@ object DatabaseSingleton {
     suspend fun <T> dbQuery(block: suspend () -> T): T =
         newSuspendedTransaction(Dispatchers.IO, database) { block() }
 
-    private val JDBCUrl by lazy {
-        if (appConfig.database.type == "sqlite" || appConfig.database.type == "h2") {
-            "jdbc:${appConfig.database.type}:${appConfig.database.db}"
-        }
-        "jdbc:${appConfig.database.type}://${appConfig.database.host}:${appConfig.database.port}/${appConfig.database.db}"
-    }
+    private val JDBCUrl =
+        "jdbc:postgresql://${appConfig.postgresConfig.host}:${appConfig.postgresConfig.port}/${appConfig.postgresConfig.db}"
 
-
-    private val driverMapping = mutableMapOf(
-        "jdbc:h2" to "org.h2.Driver",
-        "jdbc:postgresql" to "org.postgresql.Driver",
-        "jdbc:mysql" to "com.mysql.cj.jdbc.Driver",
-        "jdbc:mariadb" to "org.mariadb.jdbc.Driver",
-        "jdbc:sqlite" to "org.sqlite.JDBC",
-    )
-
-
-    private val driverClass by lazy {
-        driverMapping.entries.firstOrNull { (prefix, _) ->
-            JDBCUrl.startsWith(prefix)
-        }?.value ?: error("Database driver not found for $JDBCUrl")
-    }
 }

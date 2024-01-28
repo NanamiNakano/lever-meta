@@ -1,19 +1,12 @@
 package dev.thynanami.plugins
 
 import io.ktor.server.application.*
-import io.ktor.server.sessions.*
-import kotlin.collections.set
+import io.ktor.server.auth.*
 
 fun Application.configureAuthorization() {
-    install(Sessions) {
-        cookie<UserSession>("user_session") {
-            cookie.extensions["SameSite"] = "lax"
+    authentication {
+        bearer("bearer") {
+            realm = "Access to lever meta api"
         }
     }
 }
-
-data class UserSession(
-    val device: String,
-    val username: String,
-    val sessionId: String,
-)

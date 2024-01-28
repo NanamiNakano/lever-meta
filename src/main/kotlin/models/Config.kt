@@ -5,7 +5,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class LeverMetaConfig(
-    val database:DatabaseConfig = DatabaseConfig(),
+    @SerialName("postgres")
+    val postgresConfig:PostgresConfig = PostgresConfig(),
     @SerialName("oss")
     val objectStorageConfig: ObjectStorageConfig = ObjectStorageConfig(),
     @SerialName("ssl")
@@ -13,8 +14,7 @@ data class LeverMetaConfig(
 )
 
 @Serializable
-data class DatabaseConfig(
-    val type:String = "postgresql",
+data class PostgresConfig(
     val host:String = "localhost",
     val port:Int = 5432,
     val user:String = "",
