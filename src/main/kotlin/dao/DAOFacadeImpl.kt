@@ -61,13 +61,14 @@ class DAOFacadeImpl : DAOFacade {
         Releases.deleteWhere { Releases.id eq id } > 0
     }
 
-    private fun resultRowToUser(row: ResultRow):User = User(
+    private fun resultRowToUser(row: ResultRow): User = User(
         uuid = row[Users.id].value,
         username = row[Users.username],
-        role = row[Users.role]
+        role = row[Users.role],
+        hashedPassword = row[Users.hashedPassword]
     )
 
-    override suspend fun addNewUser(username:String,hashedPassword:String,role: UserRole): User? = dbQuery {
+    override suspend fun addNewUser(username: String, hashedPassword: String, role: UserRole): User? = dbQuery {
         val insertStatement = Users.insert {
             it[Users.username] = username
             it[Users.hashedPassword] = hashedPassword
@@ -78,7 +79,7 @@ class DAOFacadeImpl : DAOFacade {
     }
 
     override suspend fun updateUserRole(userUUID: UUID, newRole: UserRole): Boolean = dbQuery {
-        Users.update({Users.id eq userUUID}) {
+        Users.update({ Users.id eq userUUID }) {
             it[role] = newRole
         } > 0
     }
@@ -91,17 +92,19 @@ class DAOFacadeImpl : DAOFacade {
     override suspend fun getUser(userUUID: UUID): User? = dbQuery {
         Users.selectAll().where { Users.id eq userUUID }.singleOrNull()?.let(::resultRowToUser)
     }
+
+    override suspend fun getUser(username: String): User? = dbQuery {
+        Users.selectAll().where { Users.username eq username }.singleOrNull()?.let(::resultRowToUser)
+    }
 }
 
-val dao by lazy {
-    DAOFacadeImpl().apply {
-        runBlocking(Dispatchers.IO) {
-            dbQuery {
-                if (Users.selectAll().empty()) {
-                    val randomPassword = generateSecurePassword(16)
-                    addNewUser("admin", hashPassword(randomPassword),UserRole.ADMIN)
-                    logger.info("Add new admin account\nUsername: admin\nPassword: $randomPassword")
-                }
+val dao = DAOFacadeImpl().apply {
+    runBlocking {
+        dbQuery {
+            if (Users.selectAll().empty()) {
+                val randomPassword = generateSecurePassword(16)
+                addNewUser("admin", hashPassword(randomPassword), UserRole.ADMIN)
+                logger.info("Add new admin account\nUsername: admin\nPassword: $randomPassword")
             }
         }
     }

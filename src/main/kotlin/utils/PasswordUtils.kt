@@ -8,7 +8,7 @@ import java.security.SecureRandom
 val argon2Instance: Argon2Function = Argon2Function.getInstance(47104, 1, 1, 32, Argon2.ID)
 
 fun hashPassword(plainTextPassword: String): String {
-    return Password.hash(plainTextPassword).addRandomSalt().with(argon2Instance).toString()
+    return Password.hash(plainTextPassword).addRandomSalt().with(argon2Instance).result
 }
 
 fun verifyPassword(plainTextPassword: String, hash: String): Boolean {
@@ -16,7 +16,7 @@ fun verifyPassword(plainTextPassword: String, hash: String): Boolean {
 }
 
 fun generateSecurePassword(length: Int): String {
-    val charset = ('A'..'Z') + ('a'..'z') + ('0'..'9') + listOf('!', '@', '#', '$', '%', '^', '&', '*', '(', ')')
+    val charset = ('A'..'Z') + ('a'..'z') + ('0'..'9') + listOf('!', '@', '#', '$', '%', '^', '*', '(', ')')
     val secureRandom = SecureRandom()
     return (1..length)
         .map { charset[secureRandom.nextInt(charset.size)] }

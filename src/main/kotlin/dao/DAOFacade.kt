@@ -15,4 +15,5 @@ interface DAOFacade {
     suspend fun updateUserRole(userUUID: UUID, newRole: UserRole):Boolean
     suspend fun deleteUser(userUUID: UUID):Boolean
     suspend fun getUser(userUUID: UUID):User?
+    suspend fun getUser(username: String):User?
 }

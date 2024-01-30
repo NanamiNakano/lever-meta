@@ -21,9 +21,9 @@ object Configurator {
         appConfig = loadConfig()
         DatabaseSingleton.init()
 
-        Runtime.getRuntime().addShutdownHook(Thread {
+        closeOnExit {
             saveConfig(appConfig)
-        })
+        }
     }
 
     private fun loadConfig(): LeverMetaConfig {

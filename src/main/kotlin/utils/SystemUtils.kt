@@ -1,10 +1,10 @@
 package dev.thynanami.utils
 
+import java.io.Closeable
 import java.util.*
 
 
-
-object SystemInfo {
+object SystemUtils {
     var osName = System.getProperty("os.name")
     var osVersion = System.getProperty("os.version").lowercase(Locale.ENGLISH)
 
@@ -21,5 +21,11 @@ object SystemInfo {
         }
     }
 
-    val runtimeVersion = Runtime.version()
+    val runtimeVersion = Runtime.version().toString()
+}
+
+inline fun closeOnExit(crossinline block: () -> Unit) {
+    Runtime.getRuntime().addShutdownHook(Thread {
+        block()
+    })
 }

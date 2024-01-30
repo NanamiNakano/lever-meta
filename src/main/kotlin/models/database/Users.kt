@@ -1,11 +1,16 @@
 package dev.thynanami.models.database
 
+import dev.thynanami.utils.UUIDSerializer
+import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.UUIDTable
-import java.util.UUID
+import java.util.*
 
+@Serializable
 data class User(
+    @Serializable(with = UUIDSerializer::class)
     val uuid: UUID,
     val username:String,
+    val hashedPassword: String,
     val role:UserRole
 )
 

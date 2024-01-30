@@ -4,8 +4,12 @@ import dev.thynanami.plugins.configureAuthorization
 import dev.thynanami.plugins.configureRouting
 import dev.thynanami.utils.Configurator
 import dev.thynanami.utils.appConfig
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.contentnegotiation.*
+import kotlinx.serialization.json.Json
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.security.KeyStore
@@ -38,6 +42,12 @@ fun main() {
             }
         }
         module {
+            install(ContentNegotiation) {
+                json(Json {
+                    prettyPrint = true
+                    isLenient = true
+                })
+            }
             configureAuthorization()
             configureRouting()
         }

@@ -15,3 +15,6 @@ ssl:
   keyStoreAlias: "development"
   keyStorePassword: "development"
   privateKeyPassword: "development"
+redis:
+  host: "localhost"
+  port: 6379
