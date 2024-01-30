@@ -1,6 +1,5 @@
 package dev.thynanami.utils
 
-import java.io.Closeable
 import java.util.*
 
 

@@ -13,8 +13,6 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.routing.get
-import io.ktor.util.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 

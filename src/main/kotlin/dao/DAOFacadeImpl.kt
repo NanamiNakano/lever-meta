@@ -9,7 +9,6 @@ import dev.thynanami.models.database.UserRole
 import dev.thynanami.models.database.Users
 import dev.thynanami.utils.generateSecurePassword
 import dev.thynanami.utils.hashPassword
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
