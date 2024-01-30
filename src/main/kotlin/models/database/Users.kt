@@ -9,17 +9,27 @@ import java.util.*
 data class User(
     @Serializable(with = UUIDSerializer::class)
     val uuid: UUID,
-    val username:String,
+    val username: String,
     val hashedPassword: String,
-    val role:UserRole
+    val role: UserRole,
+) {
+    fun toUserInfo():UserInfo = UserInfo(uuid,username,role)
+}
+
+@Serializable
+data class UserInfo(
+    @Serializable(with = UUIDSerializer::class)
+    val uuid: UUID,
+    val username: String,
+    val role: UserRole,
 )
 
-enum class UserRole{
+enum class UserRole {
     ADMIN,
     MAINTAINER
 }
 
-object Users:UUIDTable() {
+object Users : UUIDTable() {
     val username = varchar("username", 32)
     val hashedPassword = varchar("password", 1024)
     val role = enumeration<UserRole>("role")

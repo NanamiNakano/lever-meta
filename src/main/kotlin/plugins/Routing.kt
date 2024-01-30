@@ -79,7 +79,7 @@ fun Application.configureRouting() {
                         if (user == null) {
                             call.respond(HttpStatusCode.InternalServerError)
                         } else {
-                            call.respond(user)
+                            call.respond(user.toUserInfo())
                         }
                     }
                 }
