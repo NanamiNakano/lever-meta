@@ -79,13 +79,13 @@ fun Application.configureRouting() {
                             return@get call.respond(HttpStatusCode.InternalServerError)
                         }
                         call.respond(user.toUserInfo())
-
                     }
 
                     post("/new") {
                         val user = call.principal<UserIdPrincipal>()?.name
                             ?: return@post call.respond(HttpStatusCode.InternalServerError)
-                        val userRole = dao.getUser(user)?.role ?: return@post call.respond(HttpStatusCode.InternalServerError)
+                        val userRole =
+                            dao.getUser(user)?.role ?: return@post call.respond(HttpStatusCode.InternalServerError)
                         if (userRole != UserRole.ADMIN) {
                             return@post call.respond(HttpStatusCode.Unauthorized, "You are not admin!")
                         }
@@ -98,24 +98,28 @@ fun Application.configureRouting() {
                             "maintainer" -> UserRole.MAINTAINER
                             else -> return@post call.respond(HttpStatusCode.NotAcceptable, "Invalid user role.")
                         }
-                        val newUserInfo = dao.addNewUser(username,hashedPassword,role)?.toUserInfo() ?: return@post call.respond(HttpStatusCode.InternalServerError,"Unable to add new user.")
-                        call.respond(HttpStatusCode.OK,newUserInfo)
+                        val newUserInfo =
+                            dao.addNewUser(username, hashedPassword, role)?.toUserInfo() ?: return@post call.respond(
+                                HttpStatusCode.InternalServerError,
+                                "Unable to add new user."
+                            )
+                        call.respond(HttpStatusCode.OK, newUserInfo)
                     }
 
                     get("/delete/{uuid}") {
                         val uuid = call.parameters["uuid"] ?: return@get call.respond(HttpStatusCode.NotAcceptable)
                         val user = call.principal<UserIdPrincipal>()?.name
                             ?: return@get call.respond(HttpStatusCode.InternalServerError)
-                        val userRole = dao.getUser(user)?.role ?: return@get call.respond(HttpStatusCode.InternalServerError)
+                        val userRole =
+                            dao.getUser(user)?.role ?: return@get call.respond(HttpStatusCode.InternalServerError)
                         if (userRole != UserRole.ADMIN) {
                             return@get call.respond(HttpStatusCode.Unauthorized, "You are not admin!")
                         }
-                        val sucess = dao.deleteUser(UUID.fromString(user))
-                        if (!sucess) {
-                            call.respond(HttpStatusCode.InternalServerError,"Unable to delete user")
-                        } else {
-                            call.respond(HttpStatusCode.OK,"Success!")
+                        val success = dao.deleteUser(UUID.fromString(uuid))
+                        if (!success) {
+                            return@get call.respond(HttpStatusCode.InternalServerError, "Unable to delete user")
                         }
+                        call.respond(HttpStatusCode.OK, "Success!")
                     }
                 }
             }

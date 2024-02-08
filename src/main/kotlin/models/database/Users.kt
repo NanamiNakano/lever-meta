@@ -1,6 +1,7 @@
 package dev.thynanami.models.database
 
 import dev.thynanami.utils.UUIDSerializer
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.UUIDTable
 import java.util.*
@@ -24,8 +25,11 @@ data class UserInfo(
     val role: UserRole,
 )
 
+@Serializable
 enum class UserRole {
+    @SerialName("admin")
     ADMIN,
+    @SerialName("maintainer")
     MAINTAINER
 }
 

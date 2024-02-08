@@ -1,0 +1,268 @@
+openapi: 3.1.0
+info:
+  title: Lever Meta API
+  description: API for operating lever-meta, a 3rd-party implementation for piston-meta
+  version: 0.1.0
+  contact:
+    name: Nanami Nakano
+    email: nakano@thynanami.dev
+  license:
+    name: MIT License
+    url: https://github.com/NanamiNakano/lever-meta/LICENSE.md
+servers:
+  - url: "https://localhost:8443/"
+    description: Local development server
+
+components:
+  schemas:
+    LegacyReleaseManifest:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [ "release","snapshot" ]
+        url:
+          type: string
+          format: url
+        time:
+          type: string
+          format: date-time
+        releaseTime:
+          type: string
+          format: date-time
+
+    ReleaseManifest:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [ "release","snapshot" ]
+        url:
+          type: string
+          format: url
+        time:
+          type: string
+          format: date-time
+        releaseTime:
+          type: string
+          format: date-time
+        sha1:
+          type: string
+        complianceLevel:
+          type: integer
+          format: int32
+
+    LegacyVersionManifest:
+      type: object
+      properties:
+        latest:
+          type: object
+          properties:
+            release:
+              type: string
+            snapshot:
+              type: string
+        versions:
+          type: array
+          items:
+            $ref: "#/components/schemas/LegacyReleaseManifest"
+
+    VersionManifest:
+      type: object
+      properties:
+        latest:
+          type: object
+          properties:
+            release:
+              type: string
+            snapshot:
+              type: string
+        versions:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReleaseManifest"
+
+    UserInfo:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        username:
+          type: string
+        role:
+          type: string
+          enum: ["admin","maintainer"]
+
+paths:
+  /:
+    summary: Basic information about the server
+    get:
+      tags:
+        - General
+      description: Get basic information
+      responses:
+        200:
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |
+                Lever meta server version 1.0-SNAPSHOT
+                Running on Mac OS X 14.1.2
+                Runtime: JRE 21.0.2+13-LTS
+
+  /version_manifest.json:
+    summary: Legacy version manifest
+    get:
+      tags:
+        - General
+        - Legacy
+      description: Get version manifest in legacy format
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LegacyVersionManifest"
+      deprecated: true
+
+  /version_manifest_v2.json:
+    summary: Version manifest(v2)
+    get:
+      tags:
+        - General
+      description: Get version manifest in new(v2) format
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VersionManifest"
+
+  /api/auth:
+    summary: Authorize to api
+    post:
+      tags:
+        - API
+      description: Authorize to api
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              properties:
+                username:
+                  description: Username
+                  type: string
+                password:
+                  description: Password
+                  type: string
+              required:
+                - username
+                - password
+      responses:
+        200:
+          description: OK, return a bearer token to access api
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: SomeToken
+        400:
+          description: Bad Request, username or password incorrect
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: username or password incorrect
+
+  /api/users/info:
+    summary: Get current user info
+    get:
+      tags:
+        - API
+      description: Get current user info
+      parameters:
+        - name: Authorization
+          description: Bearer token
+          in: header
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Current user info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInfo"
+        401:
+          description: Unauthorized
+
+  /api/users/new:
+    summary: Add a new user
+    post:
+      tags:
+        - API
+      description: Add a new user
+      parameters:
+        - name: Authorization
+          description: Bearer token
+          in: header
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              properties:
+                username:
+                  description: Username
+                  type: string
+                password:
+                  description: Password
+                  type: string
+                role:
+                  description: User role
+                  type: string
+                  enum: ["admin","maintainer"]
+              required:
+                - username
+                - password
+                - role
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInfo"
+        500:
+          description: Server error
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: Unable to add new user.
+        401:
+          description: Does not have permission or unauthorized
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: You are not admin!
+        406:
+          description: Invalid user role
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: Invalid user role.
