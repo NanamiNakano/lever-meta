@@ -42,7 +42,6 @@ dependencies {
     implementation("org.postgresql:postgresql:42.7.1")
     implementation("io.github.crackthecodeabhi:kreds:0.9.1")
     implementation("com.zaxxer:HikariCP:5.1.0")
-    implementation("io.minio:minio:8.5.7")
     implementation("io.github.crackthecodeabhi:kreds:0.9.1")
     implementation("com.password4j:password4j:1.7.3")
 }

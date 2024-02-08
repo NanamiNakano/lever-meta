@@ -13,6 +13,8 @@ data class LeverMetaConfig(
     val sslConfig: SSLConfig = SSLConfig(),
     @SerialName("redis")
     val redisConfig: RedisConfig = RedisConfig(),
+    @SerialName("s3")
+    val s3Config: S3Config = S3Config(),
 )
 
 @Serializable
@@ -45,4 +47,11 @@ data class SSLConfig(
 data class RedisConfig(
     val host: String = "localhost",
     val port: Int = 6379,
+)
+
+@Serializable
+data class S3Config(
+    val endpoint: String = "",
+    val username: String = "",
+    val password: String = "",
 )
