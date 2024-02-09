@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class LeverMetaConfig(
+    val upstream: List<Upstream> = listOf(Upstream("https://piston-meta.mojang.com", false)),
     @SerialName("postgres")
     val postgresConfig: PostgresConfig = PostgresConfig(),
     @SerialName("oss")
@@ -15,6 +16,12 @@ data class LeverMetaConfig(
     val redisConfig: RedisConfig = RedisConfig(),
     @SerialName("s3")
     val s3Config: S3Config = S3Config(),
+)
+
+@Serializable
+data class Upstream(
+    val url: String,
+    val show: Boolean,
 )
 
 @Serializable
@@ -52,6 +59,14 @@ data class RedisConfig(
 @Serializable
 data class S3Config(
     val endpoint: String = "",
-    val username: String = "",
-    val password: String = "",
+    val accessKey: String = "",
+    val secretKey: String = "",
+    val bucket: String = "",
+)
+
+@Serializable
+data class TenonConfig(
+    @SerialName("s3")
+    val s3Config: S3Config = S3Config(),
+    val copy: Boolean = false,
 )

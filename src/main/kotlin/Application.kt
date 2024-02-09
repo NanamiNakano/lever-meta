@@ -1,7 +1,7 @@
 package dev.thynanami
 
-import dev.thynanami.plugins.configureAuthorization
-import dev.thynanami.plugins.configureRouting
+import dev.thynanami.plugins.ktor.configureAuthorization
+import dev.thynanami.plugins.ktor.configureRouting
 import dev.thynanami.utils.Configurator
 import dev.thynanami.utils.appConfig
 import io.ktor.serialization.kotlinx.json.*

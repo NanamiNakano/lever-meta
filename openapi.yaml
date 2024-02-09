@@ -117,7 +117,7 @@ paths:
                 Running on Mac OS X 14.1.2
                 Runtime: JRE 21.0.2+13-LTS
 
-  /version_manifest.json:
+  /mc/game/version_manifest.json:
     summary: Legacy version manifest
     get:
       tags:
@@ -133,7 +133,7 @@ paths:
                 $ref: "#/components/schemas/LegacyVersionManifest"
       deprecated: true
 
-  /version_manifest_v2.json:
+  /mc/game/version_manifest_v2.json:
     summary: Version manifest(v2)
     get:
       tags:

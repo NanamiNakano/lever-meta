@@ -1,4 +1,4 @@
-package dev.thynanami.plugins
+package dev.thynanami.plugins.ktor
 
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*

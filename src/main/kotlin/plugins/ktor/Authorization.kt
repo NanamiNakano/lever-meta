@@ -1,4 +1,4 @@
-package dev.thynanami.plugins
+package dev.thynanami.plugins.ktor
 
 import dev.thynanami.dao.dao
 import dev.thynanami.utils.checkToken

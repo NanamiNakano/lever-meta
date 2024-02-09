@@ -56,6 +56,10 @@ class DAOFacadeImpl : DAOFacade {
         } > 0
     }
 
+    override suspend fun getRelease(id: String): GameRelease? = dbQuery {
+        Releases.selectAll().where { Releases.id eq id }.singleOrNull()?.let(::resultToRelease)
+    }
+
     override suspend fun deleteRelease(id: String): Boolean = dbQuery {
         Releases.deleteWhere { Releases.id eq id } > 0
     }
