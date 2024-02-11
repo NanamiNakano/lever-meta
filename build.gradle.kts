@@ -85,6 +85,7 @@ task<Exec>("generateCertificate") {
 buildConfig {
     packageName("dev.thynanami")
     buildConfigField("APP_VERSION", version.toString())
+    buildConfigField("TENON_VERSION", project("tenon").properties["tenonVersion"].toString())
     useKotlinOutput { topLevelConstants = true }
 }
 kotlin {

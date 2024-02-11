@@ -1,6 +1,7 @@
 package dev.thynanami.plugins.ktor
 
 import dev.thynanami.APP_VERSION
+import dev.thynanami.TENON_VERSION
 import dev.thynanami.dao.dao
 import dev.thynanami.models.GameReleaseClassic
 import dev.thynanami.models.Latest
@@ -10,7 +11,6 @@ import dev.thynanami.models.database.UserRole
 import dev.thynanami.plugins.tenonClient
 import dev.thynanami.utils.*
 import io.ktor.http.*
-import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -18,15 +18,15 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.io.ByteArrayOutputStream
-import java.util.UUID
-import kotlin.io.path.*
+import java.util.*
 
 fun Application.configureRouting() {
     routing {
         get("/") {
             call.respondText(
-                "Lever meta server version $APP_VERSION\n" + "Running on ${SystemUtils.osName} ${SystemUtils.osVersion}\n" +
+                "Lever meta server version $APP_VERSION\n" +
+                        "Tenon version $TENON_VERSION\n" +
+                        "Running on ${SystemUtils.osName} ${SystemUtils.osVersion}\n" +
                         "Runtime: JRE ${SystemUtils.runtimeVersion}"
             )
         }
@@ -69,8 +69,7 @@ fun Application.configureRouting() {
                     return@get call.respond(HttpStatusCode.NotFound)
                 }
                 dao.getRelease(id) ?: return@get call.respond(HttpStatusCode.NotFound)
-                val outputStream = ByteArrayOutputStream().apply { tenonClient.serve("$id.json", this) }
-                call.respondBytes(outputStream.toByteArray())
+                call.respondOutputStream { tenonClient.serve("$id.json", this) }
             }
         }
 
@@ -147,29 +146,19 @@ fun Application.configureRouting() {
 
                 route("files") {
                     post("/upload") {
-                        var fileDescription = ""
-                        var fileName = ""
-
-                        val multipartData = call.receiveMultipart()
-
-                        multipartData.forEachPart { part ->
-                            when (part) {
-                                is PartData.FormItem -> {
-                                    fileDescription = part.value
-                                }
-
-                                is PartData.FileItem -> {
-                                    fileName = part.originalFileName as String
-                                    val fileBytes = part.streamProvider().readBytes()
-                                    val file = createTempFile()
-                                    file.writeBytes(fileBytes)
-                                }
-
-                                else -> {}
-                            }
-                            part.dispose()
+                        val contentType = call.request.headers["Content-Type"] ?: return@post call.respond(
+                            HttpStatusCode.NotAcceptable
+                        )
+                        val contentLength =
+                            call.request.contentLength() ?: return@post call.respond(HttpStatusCode.NotAcceptable)
+                        val name = call.request.headers["Object-Name"]
+                            ?: return@post call.respond(HttpStatusCode.NotAcceptable)
+                        val inputStream = call.receiveStream()
+                        if (tenonClient.upload(inputStream, name, contentType, contentLength)) {
+                            call.respond("success")
+                        } else {
+                            call.respond(HttpStatusCode.InternalServerError)
                         }
-                        call.respondText("$fileDescription is uploaded to 'uploads/$fileName'")
                     }
                 }
             }

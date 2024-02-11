@@ -1,12 +1,11 @@
 package dev.thynanami.tenon
 
 import io.minio.*
-import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.extension
 import kotlin.io.path.name
 
 class TenonClient(endpoint: String, accessKey: String, secretKey: String, private val bucket: String) {
@@ -22,6 +21,14 @@ class TenonClient(endpoint: String, accessKey: String, secretKey: String, privat
         return runCatching {
             minioClient.uploadObject(
                 UploadObjectArgs.builder().bucket(bucket).`object`(name).filename(file.absolutePathString()).contentType(Files.probeContentType(file)).build()
+            )
+        }.isSuccess
+    }
+
+    fun upload(stream: InputStream,name:String,contentType: String,contentLength: Long):Boolean {
+        return runCatching {
+            minioClient.putObject(
+                PutObjectArgs.builder().bucket(bucket).`object`(name).stream(stream,contentLength,-1).contentType(contentType).build()
             )
         }.isSuccess
     }

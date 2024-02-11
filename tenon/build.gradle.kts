@@ -3,14 +3,13 @@ plugins {
 }
 
 group = "dev.thynanami.tenon"
-version = "1.0-SNAPSHOT"
+version = "0.1.0"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    testImplementation("org.jetbrains.kotlin:kotlin-test")
     implementation("io.minio:minio:8.5.7")
 }
 
