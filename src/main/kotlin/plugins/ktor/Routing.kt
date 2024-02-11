@@ -10,6 +10,7 @@ import dev.thynanami.models.database.UserRole
 import dev.thynanami.plugins.tenonClient
 import dev.thynanami.utils.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -19,6 +20,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.ByteArrayOutputStream
 import java.util.UUID
+import kotlin.io.path.*
 
 fun Application.configureRouting() {
     routing {
@@ -67,77 +69,107 @@ fun Application.configureRouting() {
                     return@get call.respond(HttpStatusCode.NotFound)
                 }
                 dao.getRelease(id) ?: return@get call.respond(HttpStatusCode.NotFound)
-                val outputStream = ByteArrayOutputStream().apply { tenonClient.serve("$id.json",this) }
+                val outputStream = ByteArrayOutputStream().apply { tenonClient.serve("$id.json", this) }
                 call.respondBytes(outputStream.toByteArray())
             }
+        }
 
-            route("/api") {
-                post("/auth") {
-                    val formParameters = call.receiveParameters()
-                    val username = formParameters["username"].toString()
-                    val plainTextPassword = formParameters["password"].toString()
-                    val user = dao.getUser(username)
-                    if (user == null || !verifyPassword(plainTextPassword, user.hashedPassword)) {
-                        return@post call.respond(HttpStatusCode.BadRequest, "username or password incorrect")
-                    }
-                    val token = generateToken()
-                    saveToken(user.uuid, token)
+        route("/api") {
+            post("/auth") {
+                val formParameters = call.receiveParameters()
+                val username = formParameters["username"].toString()
+                val plainTextPassword = formParameters["password"].toString()
+                val user = dao.getUser(username)
+                if (user == null || !verifyPassword(plainTextPassword, user.hashedPassword)) {
+                    return@post call.respond(HttpStatusCode.BadRequest, "username or password incorrect")
+                }
+                val token = generateToken()
+                if (saveToken(user.uuid, token)) {
                     call.respond(HttpStatusCode.OK, token)
+                } else {
+                    call.respond(HttpStatusCode.InternalServerError)
+                }
+            }
 
+            authenticate("bearer") {
+                route("/users") {
+                    get("/info") {
+                        val username = call.principal<UserIdPrincipal>()?.name
+                        val user = username?.let { it1 -> dao.getUser(it1) }
+                        if (user == null) {
+                            return@get call.respond(HttpStatusCode.InternalServerError)
+                        }
+                        call.respond(user.toUserInfo())
+                    }
+
+                    post("/new") {
+                        val user = call.principal<UserIdPrincipal>()?.name
+                            ?: return@post call.respond(HttpStatusCode.InternalServerError)
+                        val userRole =
+                            dao.getUser(user)?.role ?: return@post call.respond(HttpStatusCode.InternalServerError)
+                        if (userRole != UserRole.ADMIN) {
+                            return@post call.respond(HttpStatusCode.Unauthorized, "You are not admin!")
+                        }
+                        val formParameters = call.receiveParameters()
+                        val username = formParameters["username"].toString()
+                        val plainTextPassword = formParameters["password"].toString()
+                        val hashedPassword = hashPassword(plainTextPassword)
+                        val role = when (formParameters["role"].toString()) {
+                            "admin" -> UserRole.ADMIN
+                            "maintainer" -> UserRole.MAINTAINER
+                            else -> return@post call.respond(HttpStatusCode.NotAcceptable, "Invalid user role.")
+                        }
+                        val newUserInfo =
+                            dao.addNewUser(username, hashedPassword, role)?.toUserInfo()
+                                ?: return@post call.respond(
+                                    HttpStatusCode.InternalServerError,
+                                    "Unable to add new user."
+                                )
+                        call.respond(HttpStatusCode.OK, newUserInfo)
+                    }
+
+                    get("/delete/{uuid}") {
+                        val uuid = call.parameters["uuid"] ?: return@get call.respond(HttpStatusCode.NotAcceptable)
+                        val user = call.principal<UserIdPrincipal>()?.name
+                            ?: return@get call.respond(HttpStatusCode.InternalServerError)
+                        val userRole =
+                            dao.getUser(user)?.role ?: return@get call.respond(HttpStatusCode.InternalServerError)
+                        if (userRole != UserRole.ADMIN) {
+                            return@get call.respond(HttpStatusCode.Unauthorized, "You are not admin!")
+                        }
+                        val success = dao.deleteUser(UUID.fromString(uuid))
+                        if (!success) {
+                            return@get call.respond(HttpStatusCode.InternalServerError, "Unable to delete user")
+                        }
+                        call.respond(HttpStatusCode.OK, "Success!")
+                    }
                 }
 
-                authenticate("bearer") {
-                    route("/users") {
-                        get("/info") {
-                            val username = call.principal<UserIdPrincipal>()?.name
-                            val user = username?.let { it1 -> dao.getUser(it1) }
-                            if (user == null) {
-                                return@get call.respond(HttpStatusCode.InternalServerError)
-                            }
-                            call.respond(user.toUserInfo())
-                        }
+                route("files") {
+                    post("/upload") {
+                        var fileDescription = ""
+                        var fileName = ""
 
-                        post("/new") {
-                            val user = call.principal<UserIdPrincipal>()?.name
-                                ?: return@post call.respond(HttpStatusCode.InternalServerError)
-                            val userRole =
-                                dao.getUser(user)?.role ?: return@post call.respond(HttpStatusCode.InternalServerError)
-                            if (userRole != UserRole.ADMIN) {
-                                return@post call.respond(HttpStatusCode.Unauthorized, "You are not admin!")
-                            }
-                            val formParameters = call.receiveParameters()
-                            val username = formParameters["username"].toString()
-                            val plainTextPassword = formParameters["password"].toString()
-                            val hashedPassword = hashPassword(plainTextPassword)
-                            val role = when (formParameters["role"].toString()) {
-                                "admin" -> UserRole.ADMIN
-                                "maintainer" -> UserRole.MAINTAINER
-                                else -> return@post call.respond(HttpStatusCode.NotAcceptable, "Invalid user role.")
-                            }
-                            val newUserInfo =
-                                dao.addNewUser(username, hashedPassword, role)?.toUserInfo()
-                                    ?: return@post call.respond(
-                                        HttpStatusCode.InternalServerError,
-                                        "Unable to add new user."
-                                    )
-                            call.respond(HttpStatusCode.OK, newUserInfo)
-                        }
+                        val multipartData = call.receiveMultipart()
 
-                        get("/delete/{uuid}") {
-                            val uuid = call.parameters["uuid"] ?: return@get call.respond(HttpStatusCode.NotAcceptable)
-                            val user = call.principal<UserIdPrincipal>()?.name
-                                ?: return@get call.respond(HttpStatusCode.InternalServerError)
-                            val userRole =
-                                dao.getUser(user)?.role ?: return@get call.respond(HttpStatusCode.InternalServerError)
-                            if (userRole != UserRole.ADMIN) {
-                                return@get call.respond(HttpStatusCode.Unauthorized, "You are not admin!")
+                        multipartData.forEachPart { part ->
+                            when (part) {
+                                is PartData.FormItem -> {
+                                    fileDescription = part.value
+                                }
+
+                                is PartData.FileItem -> {
+                                    fileName = part.originalFileName as String
+                                    val fileBytes = part.streamProvider().readBytes()
+                                    val file = createTempFile()
+                                    file.writeBytes(fileBytes)
+                                }
+
+                                else -> {}
                             }
-                            val success = dao.deleteUser(UUID.fromString(uuid))
-                            if (!success) {
-                                return@get call.respond(HttpStatusCode.InternalServerError, "Unable to delete user")
-                            }
-                            call.respond(HttpStatusCode.OK, "Success!")
+                            part.dispose()
                         }
+                        call.respondText("$fileDescription is uploaded to 'uploads/$fileName'")
                     }
                 }
             }

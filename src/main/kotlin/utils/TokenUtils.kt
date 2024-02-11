@@ -1,6 +1,8 @@
 package dev.thynanami.utils
 
+import dev.thynanami.logger
 import io.github.crackthecodeabhi.kreds.connection.Endpoint
+import io.github.crackthecodeabhi.kreds.connection.KredsConnectionException
 import io.github.crackthecodeabhi.kreds.connection.newClient
 import java.util.UUID
 
@@ -25,13 +27,28 @@ private val redisClient by lazy {
     client
 }
 
-suspend fun saveToken(userUUID: UUID, token: String, expire: ULong = 2592000u) { // expire after 30 days by default
-    redisClient.set(token, userUUID.toString())
-    if (expire > 0u) {
-        redisClient.expire(token, expire)
+suspend fun saveToken(
+    userUUID: UUID,
+    token: String,
+    expire: ULong = 2592000u,
+): Boolean { // expire after 30 days by default
+    return try {
+        redisClient.set(token, userUUID.toString())
+        if (expire > 0u) {
+            redisClient.expire(token, expire)
+        }
+        true
+    } catch (ex: KredsConnectionException) {
+        logger.error("Failed to connect to redis.")
+        false
     }
 }
 
 suspend fun checkToken(token: String): UUID? {
-    return redisClient.get(token)?.let { UUID.fromString(it) }
+    return try {
+        redisClient.get(token)?.let { UUID.fromString(it) }
+    } catch (ex: KredsConnectionException) {
+        logger.error("Failed to connect to redis.")
+        null
+    }
 }

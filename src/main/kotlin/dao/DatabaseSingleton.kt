@@ -33,7 +33,7 @@ object DatabaseSingleton {
                 SchemaUtils.createMissingTablesAndColumns(Users)
             }
         } catch (ex: HikariPool.PoolInitializationException) {
-            logger.error("Invalid database configuration in config file.")
+            logger.error("Invalid database configuration in config file or database it not running.")
             exitProcess(10)
         }
     }

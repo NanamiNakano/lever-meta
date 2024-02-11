@@ -12,6 +12,7 @@ import dev.thynanami.utils.hashPassword
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.postgresql.util.PSQLException
 import java.util.*
 
 class DAOFacadeImpl : DAOFacade {
@@ -96,8 +97,13 @@ class DAOFacadeImpl : DAOFacade {
         Users.selectAll().where { Users.id eq userUUID }.singleOrNull()?.let(::resultRowToUser)
     }
 
-    override suspend fun getUser(username: String): User? = dbQuery {
-        Users.selectAll().where { Users.username eq username }.singleOrNull()?.let(::resultRowToUser)
+    override suspend fun getUser(username: String): User? = try {
+        dbQuery {
+            Users.selectAll().where { Users.username eq username }.singleOrNull()?.let(::resultRowToUser)
+        }
+    } catch (ex: PSQLException) {
+        logger.error("Failed to connect to database.")
+        null
     }
 }
 
