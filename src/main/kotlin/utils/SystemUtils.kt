@@ -4,7 +4,7 @@ import java.util.*
 
 
 object SystemUtils {
-    var osName = System.getProperty("os.name")
+    var osName: String = System.getProperty("os.name")
     var osVersion = System.getProperty("os.version").lowercase(Locale.ENGLISH)
 
     init {

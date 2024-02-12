@@ -88,6 +88,7 @@ buildConfig {
     buildConfigField("TENON_VERSION", project("tenon").properties["tenonVersion"].toString())
     useKotlinOutput { topLevelConstants = true }
 }
+
 kotlin {
     jvmToolchain(21)
 }
