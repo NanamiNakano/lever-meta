@@ -5,6 +5,7 @@ import dev.thynanami.TENON_VERSION
 import dev.thynanami.dao.dao
 import dev.thynanami.models.*
 import dev.thynanami.models.database.UserRole
+import dev.thynanami.plugins.checkHealth
 import dev.thynanami.plugins.tenonClient
 import dev.thynanami.utils.*
 import io.ktor.http.*
@@ -26,6 +27,15 @@ fun Application.configureRouting() {
                         "Running on ${SystemUtils.osName} ${SystemUtils.osVersion}\n" +
                         "Runtime: JRE ${SystemUtils.runtimeVersion}"
             )
+        }
+
+        get("/health-check") {
+            val health = checkHealth()
+            if (health.filter { !it.value }.isNotEmpty()) {
+                call.respond(HttpStatusCode.InternalServerError, health)
+            } else {
+                call.respond(HttpStatusCode.OK, health)
+            }
         }
 
         route("/mc/game") {
@@ -138,7 +148,8 @@ fun Application.configureRouting() {
                     }
 
                     get("/delete") {
-                        val uuid = call.request.queryParameters["uuid"] ?: return@get call.respond(HttpStatusCode.NotAcceptable)
+                        val uuid = call.request.queryParameters["uuid"]
+                            ?: return@get call.respond(HttpStatusCode.NotAcceptable)
                         val user = call.principal<UserIdPrincipal>()?.name
                             ?: return@get call.respond(HttpStatusCode.InternalServerError)
                         val userRole =
@@ -172,7 +183,9 @@ fun Application.configureRouting() {
                     }
 
                     get("/delete") {
-                        val target = call.request.queryParameters["objectName"] ?: return@get call.respond(HttpStatusCode.NotAcceptable)
+                        val target = call.request.queryParameters["objectName"] ?: return@get call.respond(
+                            HttpStatusCode.NotAcceptable
+                        )
                         if (tenonClient.delete(target)) {
                             call.respond(HttpStatusCode.OK)
                         } else {
@@ -192,7 +205,8 @@ fun Application.configureRouting() {
                     }
 
                     get("/delete") {
-                        val id = call.request.queryParameters["id"] ?: return@get call.respond(HttpStatusCode.NotAcceptable)
+                        val id =
+                            call.request.queryParameters["id"] ?: return@get call.respond(HttpStatusCode.NotAcceptable)
                         if (dao.deleteRelease(id)) {
                             call.respond(HttpStatusCode.OK)
                         } else {

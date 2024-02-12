@@ -14,7 +14,7 @@ fun generateToken(): String {
     }.joinToString("")
 }
 
-private val redisClient by lazy {
+val redisClient by lazy {
     val client = newClient(
         Endpoint(
             appConfig.redisConfig.host,
