@@ -3,10 +3,7 @@ package dev.thynanami.plugins.ktor
 import dev.thynanami.APP_VERSION
 import dev.thynanami.TENON_VERSION
 import dev.thynanami.dao.dao
-import dev.thynanami.models.GameReleaseClassic
-import dev.thynanami.models.Latest
-import dev.thynanami.models.ReleaseManifest
-import dev.thynanami.models.ReleaseManifestV2
+import dev.thynanami.models.*
 import dev.thynanami.models.database.UserRole
 import dev.thynanami.plugins.tenonClient
 import dev.thynanami.utils.*
@@ -61,15 +58,28 @@ fun Application.configureRouting() {
             }
         }
 
-        route("/v1/packages/") {
-            get("/{hash}/{id}.json") {
-                val hash = call.parameters["hash"]
-                val id = call.parameters["id"]
-                if (hash == null || id == null) {
-                    return@get call.respond(HttpStatusCode.NotFound)
+        route("/v1") {
+            route("/packages") {
+                get("/{sha1}/{id}.json") {
+                    val sha1 = call.parameters["sha1"]
+                    val id = call.parameters["id"]
+                    if (sha1 == null || id == null) {
+                        return@get call.respond(HttpStatusCode.NotFound)
+                    }
+                    dao.getRelease(id) ?: return@get call.respond(HttpStatusCode.NotFound)
+                    call.respondOutputStream { tenonClient.serve("/packages/$id.json", this) }
                 }
-                dao.getRelease(id) ?: return@get call.respond(HttpStatusCode.NotFound)
-                call.respondOutputStream { tenonClient.serve("$id.json", this) }
+            }
+
+            route("objects") {
+                get("/{sha1}/{file}") {
+                    val sha1 = call.parameters["sha1"]
+                    val file = call.parameters["file"]
+                    if (sha1 == null || file == null) {
+                        return@get call.respond(HttpStatusCode.NotFound)
+                    }
+                    call.respondOutputStream { tenonClient.serve("/objects/$file", this) }
+                }
             }
         }
 
@@ -127,8 +137,8 @@ fun Application.configureRouting() {
                         call.respond(HttpStatusCode.OK, newUserInfo)
                     }
 
-                    get("/delete/{uuid}") {
-                        val uuid = call.parameters["uuid"] ?: return@get call.respond(HttpStatusCode.NotAcceptable)
+                    get("/delete") {
+                        val uuid = call.request.queryParameters["uuid"] ?: return@get call.respond(HttpStatusCode.NotAcceptable)
                         val user = call.principal<UserIdPrincipal>()?.name
                             ?: return@get call.respond(HttpStatusCode.InternalServerError)
                         val userRole =
@@ -155,7 +165,45 @@ fun Application.configureRouting() {
                             ?: return@post call.respond(HttpStatusCode.NotAcceptable)
                         val inputStream = call.receiveStream()
                         if (tenonClient.upload(inputStream, name, contentType, contentLength)) {
-                            call.respond("success")
+                            call.respond(HttpStatusCode.OK)
+                        } else {
+                            call.respond(HttpStatusCode.InternalServerError)
+                        }
+                    }
+
+                    get("/delete") {
+                        val target = call.request.queryParameters["objectName"] ?: return@get call.respond(HttpStatusCode.NotAcceptable)
+                        if (tenonClient.delete(target)) {
+                            call.respond(HttpStatusCode.OK)
+                        } else {
+                            call.respond(HttpStatusCode.InternalServerError)
+                        }
+                    }
+                }
+
+                route("/releases") {
+                    post("/add") {
+                        val release = call.receive<GameRelease>()
+                        if (dao.addNewRelease(release)) {
+                            call.respond(HttpStatusCode.OK)
+                        } else {
+                            call.respond(HttpStatusCode.InternalServerError)
+                        }
+                    }
+
+                    get("/delete") {
+                        val id = call.request.queryParameters["id"] ?: return@get call.respond(HttpStatusCode.NotAcceptable)
+                        if (dao.deleteRelease(id)) {
+                            call.respond(HttpStatusCode.OK)
+                        } else {
+                            call.respond(HttpStatusCode.InternalServerError)
+                        }
+                    }
+
+                    post("/update") {
+                        val release = call.receive<GameRelease>()
+                        if (dao.updateRelease(release)) {
+                            call.respond(HttpStatusCode.OK)
                         } else {
                             call.respond(HttpStatusCode.InternalServerError)
                         }
